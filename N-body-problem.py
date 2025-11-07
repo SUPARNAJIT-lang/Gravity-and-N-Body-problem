@@ -11,9 +11,10 @@ G=6.674*10e-11
 N=3
 
 ν=3.156*10**7
-t=np.linspace(0,1*ν,10000000)
+t=np.linspace(0,1000000*ν,10000000)
 
-pos0=np.random.rand(N,3)*10**11
+
+pos0=np.random.rand(N,3)*10**15
 vel0=np.random.rand(N,3)*5*1000
 mass=np.random.rand(N)*50*10**29
 
