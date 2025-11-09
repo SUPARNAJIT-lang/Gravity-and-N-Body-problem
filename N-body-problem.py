@@ -7,7 +7,7 @@ from numba import njit
 
 
 
-G=6.674*10e-11
+G=6.674e-11
 N=3
 
 ν=3.156*10**7
@@ -31,10 +31,10 @@ def acc(state,t):
                     if i!=j:
                         rji=pos[j]-pos[i]
                         θ=np.linalg.norm(rji)
-                        γ=((G*(mass[i])*(mass[j]))/(θ**3))
+                        γ=((G*(mass[j]))/(θ**3))
                         φ=γ*rji
-                        α=φ/mass[i]
-                        acc[i]+=α
+                        
+                        acc[i]+=φ
             return np.hstack((vel.flatten(),acc.flatten()))
                          
 
