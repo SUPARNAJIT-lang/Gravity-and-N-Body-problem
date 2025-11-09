@@ -7,7 +7,7 @@ from numba import njit
 
 
 
-G=6.674*10e-11
+G=6.674e-11
 N=3
 
 ν=3.156*10**10
@@ -50,3 +50,4 @@ ax.plot(sol.T[3],sol.T[4],sol.T[5])
 ax.plot(sol.T[6],sol.T[7],sol.T[8])
 
 plt.show()
+
