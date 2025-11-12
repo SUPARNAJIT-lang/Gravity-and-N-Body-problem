@@ -1,5 +1,5 @@
 #Position calcn✅✅✅:
-def pcalc():
+def pcalc1():
     from astroquery.simbad import Simbad
     from astropy import units as u 
     from astropy.coordinates import SkyCoord
@@ -23,11 +23,15 @@ def pcalc():
 import numpy as np
 
 #α centauri A
+α=(219.90205833170774,-60.83399268831004,742.12)
+
+#α centauri B
+β=(219.89609628987276,-60.83752756558407,742.12)
+
+#Proxima centauri 
+proxima=(217.42894222160578,-62.67949018907555,768.0665)
 
 
-ra=219.90205833170774
-dec=-60.83399268831004
-plx_value=742.12
 
 
 γ=np.pi/180
@@ -42,70 +46,69 @@ def result_crtsn(m,n,r):
 
     return (x,y,z)
 
-ϙ=result_crtsn(ra,dec,plx_value)
+def pcalc2():
+    ϙ1=result_crtsn(α[0],α[1],α[2])
+    ϙ2=result_crtsn(β[0],β[1],β[2])
+    ϙ3=result_crtsn(proxima[0],proxima[1],proxima[2])
+
+    return (ϙ1,ϙ2,ϙ3)
+
+
+
 
 
 # Actual velocity calcn (km/s)✅✅✅:
 
+# compute_velocities.py
 from astroquery.simbad import Simbad
 import numpy as np
 
-# 1️⃣ Query Simbad with correct field names
-custom = Simbad()
-custom.add_votable_fields('ra', 'dec', 'plx_value', 'pmra', 'pmdec', 'rvz_radvel')
+def get_velocity_arrays(stars=None):
+    if stars is None:
+        stars = ["Alpha Cen A", "Alpha Cen B", "Proxima Cen"]
 
-stars = ["Alpha Cen A", "Alpha Cen B", "Proxima Cen"]
-res = custom.query_objects(stars)
+    # Query Simbad
+    custom = Simbad()
+    custom.add_votable_fields('ra', 'dec', 'plx_value', 'pmra', 'pmdec', 'rvz_radvel')
+    res = custom.query_objects(stars)
+    res.rename_columns(res.colnames, [c.lower() for c in res.colnames])
+    
+    # Conversion constant: mas/yr * pc -> km/s
+    k = 4.74047
 
-# 2️⃣ Convert column names to lowercase for consistency
-res.rename_columns(res.colnames, [c.lower() for c in res.colnames])
+    def compute_velocity_array(row):
+        ra = np.deg2rad(row['ra'])
+        dec = np.deg2rad(row['dec'])
+        plx = row['plx_value']  # in mas
+        pmra = (row['pmra'] if row['pmra'] is not None else 0.0) / 1000
+        pmdec = (row['pmdec'] if row['pmdec'] is not None else 0.0) / 1000
+        rv = row['rvz_radvel'] if row['rvz_radvel'] is not None else 0.0
 
-# 3️⃣ Conversion constant: mas/yr * pc -> km/s
-k = 4.74047
+        if plx == 0 or plx is None:
+            raise ValueError(f"Parallax missing for {row['main_id']}")
 
-def compute_velocity_array(row):
-    # Read values
-    ra = np.deg2rad(row['ra'])
-    dec = np.deg2rad(row['dec'])
-    plx = row['plx_value']  # in mas
-    # Divide by 1000 to convert mas/yr -> arcsec/yr
-    pmra = (row['pmra'] if row['pmra'] is not None else 0.0) / 1000
-    pmdec = (row['pmdec'] if row['pmdec'] is not None else 0.0) / 1000
-    rv = row['rvz_radvel'] if row['rvz_radvel'] is not None else 0.0  # km/s
+        # Distance in parsec
+        d = 1 / (plx * 1e-3)
 
-    if plx == 0 or plx is None:
-        raise ValueError(f"Parallax missing for {row['main_id']}")
+        # Unit vectors for ICRS
+        cosd, sind, cosa, sina = np.cos(dec), np.sin(dec), np.cos(ra), np.sin(ra)
+        e_r = np.array([cosd*cosa, cosd*sina, sind])
+        e_alpha = np.array([-sina, cosa, 0.0])
+        e_delta = np.array([-sind*cosa, -sind*sina, cosd])
 
-    # Distance in parsec
-    d = 1 / (plx * 1e-3)  # mas -> arcsec -> pc
+        # Velocities
+        v_tan = k * d * (pmra*e_alpha + pmdec*e_delta)
+        v_rad = rv * e_r
+        return v_tan + v_rad
 
-    # Unit vectors for ICRS
-    cosd = np.cos(dec)
-    sind = np.sin(dec)
-    cosa = np.cos(ra)
-    sina = np.sin(ra)
+    # Compute velocities and store in a NumPy array
+    velocity_arrays = []
+    for r in res:
+        try:
+            velocity_arrays.append(compute_velocity_array(r))
+        except Exception as e:
+            print(f"Skipping {r['main_id']}: {e}")
 
-    e_r = np.array([cosd * cosa, cosd * sina, sind])
-    e_alpha = np.array([-sina, cosa, 0.0])
-    e_delta = np.array([-sind * cosa, -sind * sina, cosd])
+    # Convert list of arrays into a single NumPy array
+    return np.array(velocity_arrays)  # shape: (N_stars, 3)
 
-    # Tangential velocity (km/s)
-    v_tan = k * d * (pmra * e_alpha + pmdec * e_delta)
-    # Radial velocity (km/s)
-    v_rad = rv * e_r
-    # Total space velocity
-    v_total = v_tan + v_rad
-
-    return v_total  # numpy array [vx, vy, vz] in km/s
-
-# 4️⃣ Compute velocities
-velocity_arrays = []
-for r in res:
-    try:
-        velocity_arrays.append(compute_velocity_array(r))
-    except Exception as e:
-        print(f"Skipping {r['main_id']}: {e}")
-
-# 5️⃣ Print results
-for star, v in zip(stars, velocity_arrays):
-    print(f"{star}: vx, vy, vz = {v}")
