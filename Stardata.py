@@ -1,19 +1,48 @@
 #Position calcn✅✅✅:
-
-from astroquery.simbad import Simbad
-from astropy import units as u 
-from astropy.coordinates import SkyCoord
-
-
-customsimbad=Simbad()
-customsimbad.add_votable_fields('plx')
-
-stars=["Alpha Cen A", "Alpha Cen B", "Proxima Cen"]
+def pcalc():
+    from astroquery.simbad import Simbad
+    from astropy import units as u 
+    from astropy.coordinates import SkyCoord
 
 
-result=customsimbad.query_objects(stars)
-print(result)
+    customsimbad=Simbad()
+    customsimbad.add_votable_fields('plx')
 
+    stars=["Alpha Cen A", "Alpha Cen B", "Proxima Cen"]
+
+
+    result=customsimbad.query_objects(stars)
+    return result
+
+
+
+
+# In cartesian coordinate system:
+
+
+import numpy as np
+
+#α centauri A
+
+
+ra=219.90205833170774
+dec=-60.83399268831004
+plx_value=742.12
+
+
+γ=np.pi/180
+
+def result_crtsn(m,n,r):
+    plxarc=r/1000
+    d=(1/plxarc)*3.086e16  #in m
+
+    x=d*(np.cos(γ*n))*np.cos(γ*m)
+    y=d*(np.cos(γ*n))*np.sin(γ*m)
+    z=d*np.sin(γ*m)
+
+    return (x,y,z)
+
+ϙ=result_crtsn(ra,dec,plx_value)
 
 
 # Actual velocity calcn (km/s)✅✅✅:

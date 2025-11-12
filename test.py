@@ -1,6 +1,8 @@
-from Stardata import result_crtsn as cn
+from Stardata import pcalc as pc
 
-print()
+r=pc()
+
+print(r)
 
 
 
