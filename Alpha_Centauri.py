@@ -5,6 +5,7 @@ import numpy as np
 #My imports:
 from Stardata import pcalc2 as pc2
 from Stardata import get_velocity_arrays as gva
+from mpl_toolkits.mplot3d import Axes3D
 
 
 AU = 1.496e11
@@ -61,7 +62,7 @@ print(sol)
 
 
 
-from mpl_toolkits.mplot3d import Axes3D
+
 
 # Create two separate plots
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6), subplot_kw={'projection': '3d'})

@@ -116,3 +116,29 @@ def get_velocity_arrays(stars=None):
     # Convert list of arrays into a single NumPy array
     return np.array(velocity_arrays)*1000  # shape: (N_stars, 3)
 
+#Relative velocity of Stars:
+
+μ=get_velocity_arrays()
+Ψ=pcalc2()
+
+
+def v_relative():
+   m0=1.98847e30 #1 solar-mass
+   m=np.array([1.1*m0,0.907*m0,0.122*m0]) 
+
+   vbc=(m[0]*μ[0]+m[1]*μ[1]+m[2]*μ[2])/(m[0]+m[1]+m[2]) #Initial vel of barycenter
+
+   posbc=(m[0]*Ψ[0]+m[1]*Ψ[1]+m[2]*Ψ[2])/(m[0]+m[1]+m[2]) #Initial position of barycenter
+
+   μrel=μ-vbc
+
+   return μrel
+
+
+
+
+
+
+
+
+
