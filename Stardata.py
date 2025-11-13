@@ -1,4 +1,5 @@
 #Position calcn✅✅✅:
+
 def pcalc1():
     from astroquery.simbad import Simbad
     from astropy import units as u 
@@ -51,7 +52,8 @@ def pcalc2():
     ϙ2=result_crtsn(β[0],β[1],β[2])
     ϙ3=result_crtsn(proxima[0],proxima[1],proxima[2])
 
-    return (ϙ1,ϙ2,ϙ3)
+    return np.array([ϙ1,ϙ2,ϙ3])
+    
 
 
 

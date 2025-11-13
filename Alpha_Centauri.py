@@ -9,8 +9,8 @@ from Stardata import get_velocity_arrays as gva
 m0=1.98847e+30 #1 solar-mass
 mass=np.array([1.1,0.907,0.122])*m0
 
-#pos0= START FROM HERE
-#vel0= START FROM HERE
+pos0=
+vel0=
 
 
 
