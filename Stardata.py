@@ -61,9 +61,9 @@ def pcalc2():
 
 
 
-# Actual velocity calcn (km/s)✅✅✅:
+# Actual velocity calcn (m/s)✅✅✅:
 
-# compute_velocities.py
+
 from astroquery.simbad import Simbad
 import numpy as np
 
