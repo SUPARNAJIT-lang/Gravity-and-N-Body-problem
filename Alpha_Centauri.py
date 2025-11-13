@@ -13,7 +13,10 @@ G=6.674e-11
 N=3
 
 ν=3.156e7
-t=np.linspace(0,80*ν,20000)
+
+t_span=(0,80*ν)
+t=np.linspace(t_span[0],t_span[1],20000)
+
 
 
 
@@ -52,7 +55,7 @@ def acc(state,t):
 
 
 # After your integration:
-sol = odeint(acc, state0, t)
+sol = odeint(acc,state0,t)
 
 # Create two separate plots
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6), subplot_kw={'projection': '3d'})
