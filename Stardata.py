@@ -52,7 +52,7 @@ def pcalc2():
     ϙ2=result_crtsn(β[0],β[1],β[2])
     ϙ3=result_crtsn(proxima[0],proxima[1],proxima[2])
 
-    return np.array([ϙ1,ϙ2,ϙ3])
+    return np.array([ϙ1,ϙ2,ϙ3]) 
 
 
     
@@ -114,5 +114,5 @@ def get_velocity_arrays(stars=None):
             print(f"Skipping {r['main_id']}: {e}")
 
     # Convert list of arrays into a single NumPy array
-    return np.array(velocity_arrays)  # shape: (N_stars, 3)
+    return np.array(velocity_arrays)*1000  # shape: (N_stars, 3)
 
