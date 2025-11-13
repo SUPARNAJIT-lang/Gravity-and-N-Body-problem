@@ -35,7 +35,7 @@ print(vel0)
 state0 = np.hstack((pos0.flatten(), vel0.flatten()))
 
 
-def acc(state,t):
+def acc(t,state):
             pos=state[:3*N].reshape(N,3)
             vel=state[3*N:].reshape(N,3)
             acc = np.zeros((N, 3))
@@ -55,14 +55,20 @@ def acc(state,t):
 
 
 # After your integration:
-sol = odeint(acc,state0,t)
+sol = solve_ivp(acc,t_span,state0,method='RK45',t_eval=t)
+print(sol)
+
+
+
+
+from mpl_toolkits.mplot3d import Axes3D
 
 # Create two separate plots
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6), subplot_kw={'projection': '3d'})
 
 # Plot 1: Alpha Cen A & B ONLY (in AU)
-ax1.plot(sol[:, 0]/AU, sol[:, 1]/AU, sol[:, 2]/AU, 'orange', label='Alpha Cen A')
-ax1.plot(sol[:, 3]/AU, sol[:, 4]/AU, sol[:, 5]/AU, 'blue', label='Alpha Cen B')
+ax1.plot(sol.y[0, :]/AU, sol.y[1, :]/AU, sol.y[2, :]/AU, 'orange', label='Alpha Cen A')
+ax1.plot(sol.y[3, :]/AU, sol.y[4, :]/AU, sol.y[5, :]/AU, 'blue', label='Alpha Cen B')
 ax1.set_xlabel('X (AU)')
 ax1.set_ylabel('Y (AU)')
 ax1.set_zlabel('Z (AU)')
@@ -70,9 +76,9 @@ ax1.set_title('Alpha Cen A & B (80 years)')
 ax1.legend()
 
 # Plot 2: All three stars
-ax2.plot(sol[:, 0]/AU, sol[:, 1]/AU, sol[:, 2]/AU, 'orange', label='Alpha Cen A', linewidth=0.5)
-ax2.plot(sol[:, 3]/AU, sol[:, 4]/AU, sol[:, 5]/AU, 'blue', label='Alpha Cen B', linewidth=0.5)
-ax2.plot(sol[:, 6]/AU, sol[:, 7]/AU, sol[:, 8]/AU, 'red', label='Proxima', linewidth=2)
+ax2.plot(sol.y[0, :]/AU, sol.y[1, :]/AU, sol.y[2, :]/AU, 'orange', label='Alpha Cen A', linewidth=0.5)
+ax2.plot(sol.y[3, :]/AU, sol.y[4, :]/AU, sol.y[5, :]/AU, 'blue', label='Alpha Cen B', linewidth=0.5)
+ax2.plot(sol.y[6, :]/AU, sol.y[7, :]/AU, sol.y[8, :]/AU, 'red', label='Proxima', linewidth=2)
 ax2.set_xlabel('X (AU)')
 ax2.set_ylabel('Y (AU)')
 ax2.set_zlabel('Z (AU)')
@@ -81,4 +87,5 @@ ax2.legend()
 
 plt.tight_layout()
 plt.show()
+
 
