@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from scipy.integrate import odeint
+from scipy.integrate import solve_ivp
 import numpy as np
 
 #My imports:
