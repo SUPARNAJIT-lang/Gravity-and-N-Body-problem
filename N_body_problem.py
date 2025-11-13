@@ -10,13 +10,13 @@ from numba import njit
 G=6.674e-11
 N=3
 
-ν=3.156*10**7
-t=np.linspace(0,1000000*ν,10000000)
+ν=3.156*10**10
+t=np.linspace(0,100000*ν,100000)
 
 
-pos0=np.random.rand(N,3)*10**15
+pos0=np.random.rand(N,3)*1.5*10e16
 vel0=np.random.rand(N,3)*5*1000
-mass=np.random.rand(N)*50*10**29
+mass=np.random.rand(N)*70*10e30
 
 state0 = np.hstack((pos0.flatten(), vel0.flatten()))
 
@@ -38,6 +38,7 @@ def acc(state,t):
             return np.hstack((vel.flatten(),acc.flatten()))
                          
 
+
 sol=odeint(acc,state0,t)
             
 
@@ -49,3 +50,4 @@ ax.plot(sol.T[3],sol.T[4],sol.T[5])
 ax.plot(sol.T[6],sol.T[7],sol.T[8])
 
 plt.show()
+
