@@ -6,30 +6,23 @@ from numba import njit
 from Stardata import pcalc2 as pc2
 from Stardata import get_velocity_arrays as gva
 
-m0=1.98847e+30 #1 solar-mass
-mass=np.array([1.1,0.907,0.122])*m0
-
-pos0=
-vel0=
-
-
-
-
-
-
 
 
 
 G=6.674e-11
 N=3
 
-ν=3.156*10**10
+ν=3.156e+7
 t=np.linspace(0,100*ν,100000)
 
+m0=1.98847e+30 #1 solar-mass
+mass=np.array([1.1*m0,0.907*m0,0.122*m0])
 
-pos0=np.random.rand(N,3)*1.5*10e16
-vel0=np.random.rand(N,3)*5*1000
-mass=np.random.rand(N)*70*10e30
+pos0=pc2()
+vel0=gva()
+
+
+
 
 state0 = np.hstack((pos0.flatten(), vel0.flatten()))
 

@@ -53,6 +53,8 @@ def pcalc2():
     ϙ3=result_crtsn(proxima[0],proxima[1],proxima[2])
 
     return np.array([ϙ1,ϙ2,ϙ3])
+
+
     
 
 
