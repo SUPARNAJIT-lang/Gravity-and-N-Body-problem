@@ -43,7 +43,7 @@ def result_crtsn(m,n,r):
 
     x=d*(np.cos(γ*n))*np.cos(γ*m)
     y=d*(np.cos(γ*n))*np.sin(γ*m)
-    z=d*np.sin(γ*m)
+    z=d*np.sin(γ*n)
 
     return (x,y,z)
 
