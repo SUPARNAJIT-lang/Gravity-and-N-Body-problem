@@ -66,7 +66,7 @@ ax1.plot(sol[:, 3]/AU, sol[:, 4]/AU, sol[:, 5]/AU, 'blue', label='Alpha Cen B')
 ax1.set_xlabel('X (AU)')
 ax1.set_ylabel('Y (AU)')
 ax1.set_zlabel('Z (AU)')
-ax1.set_title('Alpha Cen A & B (0 years)')
+ax1.set_title('Alpha Cen A & B (80 years)')
 ax1.legend()
 
 # Plot 2: All three stars
