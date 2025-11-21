@@ -3,65 +3,88 @@ from scipy.integrate import odeint
 import numpy as np
 from numba import njit
 
-G = 6.674e-11
-N = 2
+
+
+#My part
+
+G=6.674e-11
+N=10
+
+ν=3.156e10
+t=np.linspace(0,10e7*ν,10000)
 
 
 
-# Time setup: 100,000 years in seconds
-year_in_seconds = 3.156e7  # seconds per year
-t_max = 100000000 * year_in_seconds
-t = np.linspace(0, t_max, 10000)  # Reduced points for efficiency
+pos0=np.random.rand(N,3)*1.5*10e20
 
-# Initial conditions
-pos0 = np.random.rand(N, 3) * 1.5e16  # meters
-vel0 = np.random.rand(N, 3) * 5e3     # m/s
-mass = np.random.rand(N) * 7e31       # kg (solar mass scale)
+vel0=np.random.rand(N,3)*5*1000
+mass=np.random.rand(N)*70*10e35
 
 state0 = np.hstack((pos0.flatten(), vel0.flatten()))
 
+
 @njit
-def derivatives(state, t):
-    pos = state[:3*N].reshape(N, 3)
-    vel = state[3*N:].reshape(N, 3)
-    acc = np.zeros((N, 3))
-    
-    for i in range(N):
-        for j in range(N):
-            if i != j:
-                r_vec = pos[j] - pos[i]
-                r_mag = np.sqrt(r_vec[0]**2 + r_vec[1]**2 + r_vec[2]**2)
-                
-                # Gravitational acceleration
-                acc_mag = G * mass[j] / (r_mag**3)
-                acc[i] += acc_mag * r_vec
-    
-    return np.hstack((vel.flatten(), acc.flatten()))
+def acc(state,t):
+            pos=state[:3*N].reshape(N,3)
+            vel=state[3*N:].reshape(N,3)
+            acc = np.zeros((N, 3))
 
-# Solve ODE
-print("Solving N-body problem...")
-sol = odeint(derivatives, state0, t)
+            for i in range (N):
+                for j in range (N):
+                    if i!=j:
+                        rji=pos[j]-pos[i]
+                        θ=np.sqrt(rji[0]**2 + rji[1]**2 + rji[2]**2)  # Manual norm for numba
+                        θ=max(θ, 1e14)  # Collision softening - prevents division by near-zero
+                        γ=((G*(mass[j]))/(θ**3))
+                        φ=γ*rji
+                        
+                        acc[i]+=φ
+            return np.hstack((vel.flatten(),acc.flatten()))
+                         
 
-# Extract positions for each body
+
+#Claude's part 
+
+sol = odeint(acc, state0, t)
+
+# Extract positions correctly
 positions = sol[:, :3*N].reshape(-1, N, 3)
 
-# Plot trajectories
-fig = plt.figure(figsize=(10, 8))
+# Create clean plot
+fig = plt.figure(figsize=(10, 8), facecolor='white')
 ax = fig.add_subplot(111, projection="3d")
+ax.set_facecolor('white')
 
-colors = ['r', 'b', 'g']
+# Generate colors for any N bodies
+colors = plt.cm.tab10(np.linspace(0, 1, N))
+
+# Plot trajectories as lines only
 for i in range(N):
-    ax.plot(positions[:, i, 0], positions[:, i, 1], positions[:, i, 2], 
-            color=colors[i], label=f'Body {i+1}', linewidth=0.5)
-    # Mark starting position
-    ax.scatter(positions[0, i, 0], positions[0, i, 1], positions[0, i, 2], 
-               color=colors[i], s=100, marker='o')
+    # Line trajectory
+    ax.plot(positions[:, i, 0], positions[:, i, 1], positions[:, i, 2],
+           color=colors[i], linewidth=1.2, alpha=0.8, label=f'Body {i+1}')
+    
+    # Mark final position only
+    ax.scatter(positions[-1, i, 0], positions[-1, i, 1], positions[-1, i, 2],
+              color=colors[i], s=200, marker='o', edgecolors='black', 
+              linewidths=2, zorder=10)
 
-ax.set_xlabel('X (m)')
-ax.set_ylabel('Y (m)')
-ax.set_zlabel('Z (m)')
-ax.set_title('3-Body Gravitational Simulation')
-ax.legend()
+# Clean styling
+ax.set_xlabel('X (m)', fontsize=11)
+ax.set_ylabel('Y (m)', fontsize=11)
+ax.set_zlabel('Z (m)', fontsize=11)
+ax.set_title(f'{N}-Body Gravitational Simulation', fontsize=13, fontweight='bold', pad=15)
+
+# Scientific notation
+ax.ticklabel_format(style='scientific', scilimits=(0,0))
+
+# Clean grid
+ax.grid(True, alpha=0.2, linestyle='--', linewidth=0.5)
+ax.xaxis.pane.fill = False
+ax.yaxis.pane.fill = False
+ax.zaxis.pane.fill = False
+
+ax.legend(fontsize=10, framealpha=0.9)
 
 plt.tight_layout()
 plt.show()
