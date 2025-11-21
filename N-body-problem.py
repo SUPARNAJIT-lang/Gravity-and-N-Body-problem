@@ -3,51 +3,65 @@ from scipy.integrate import odeint
 import numpy as np
 from numba import njit
 
+G = 6.674e-11
+N = 2
 
 
 
+# Time setup: 100,000 years in seconds
+year_in_seconds = 3.156e7  # seconds per year
+t_max = 100000000 * year_in_seconds
+t = np.linspace(0, t_max, 10000)  # Reduced points for efficiency
 
-G=6.674e-11
-N=3
-
-ν=3.156*10**10
-t=np.linspace(0,100000*ν,100000)
-
-
-pos0=np.random.rand(N,3)*1.5*10e16
-vel0=np.random.rand(N,3)*5*1000
-mass=np.random.rand(N)*70*10e30
+# Initial conditions
+pos0 = np.random.rand(N, 3) * 1.5e16  # meters
+vel0 = np.random.rand(N, 3) * 5e3     # m/s
+mass = np.random.rand(N) * 7e31       # kg (solar mass scale)
 
 state0 = np.hstack((pos0.flatten(), vel0.flatten()))
 
 @njit
-def acc(state,t):
-            pos=state[:3*N].reshape(N,3)
-            vel=state[3*N:].reshape(N,3)
-            acc = np.zeros((N, 3))
+def derivatives(state, t):
+    pos = state[:3*N].reshape(N, 3)
+    vel = state[3*N:].reshape(N, 3)
+    acc = np.zeros((N, 3))
+    
+    for i in range(N):
+        for j in range(N):
+            if i != j:
+                r_vec = pos[j] - pos[i]
+                r_mag = np.sqrt(r_vec[0]**2 + r_vec[1]**2 + r_vec[2]**2)
+                
+                # Gravitational acceleration
+                acc_mag = G * mass[j] / (r_mag**3)
+                acc[i] += acc_mag * r_vec
+    
+    return np.hstack((vel.flatten(), acc.flatten()))
 
-            for i in range (N):
-                for j in range (N):
-                    if i!=j:
-                        rji=pos[j]-pos[i]
-                        θ=np.linalg.norm(rji)
-                        γ=((G*(mass[j]))/(θ**3))
-                        φ=γ*rji
-                        
-                        acc[i]+=φ
-            return np.hstack((vel.flatten(),acc.flatten()))
-                         
+# Solve ODE
+print("Solving N-body problem...")
+sol = odeint(derivatives, state0, t)
 
+# Extract positions for each body
+positions = sol[:, :3*N].reshape(-1, N, 3)
 
-sol=odeint(acc,state0,t)
-            
+# Plot trajectories
+fig = plt.figure(figsize=(10, 8))
+ax = fig.add_subplot(111, projection="3d")
 
-fig=plt.figure()
-ax=fig.add_subplot(111,projection="3d")
+colors = ['r', 'b', 'g']
+for i in range(N):
+    ax.plot(positions[:, i, 0], positions[:, i, 1], positions[:, i, 2], 
+            color=colors[i], label=f'Body {i+1}', linewidth=0.5)
+    # Mark starting position
+    ax.scatter(positions[0, i, 0], positions[0, i, 1], positions[0, i, 2], 
+               color=colors[i], s=100, marker='o')
 
-ax.plot(sol.T[0],sol.T[1],sol.T[2])
-ax.plot(sol.T[3],sol.T[4],sol.T[5])
-ax.plot(sol.T[6],sol.T[7],sol.T[8])
+ax.set_xlabel('X (m)')
+ax.set_ylabel('Y (m)')
+ax.set_zlabel('Z (m)')
+ax.set_title('3-Body Gravitational Simulation')
+ax.legend()
 
+plt.tight_layout()
 plt.show()
-
