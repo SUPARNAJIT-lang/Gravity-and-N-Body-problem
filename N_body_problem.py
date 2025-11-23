@@ -1,68 +1,50 @@
 import matplotlib.pyplot as plt
-from scipy.integrate import odeint
 import numpy as np
-from numba import njit
+from physics_engine import PhysicsEngine
 
+# Configuration
+G = 6.67430e-11
+N = 30  # Number of bodies
+units = 'SI'
 
+# Time settings
+year_seconds = 365.25 * 24 * 3600
+t_end = 2 * year_seconds  # Simulate for 2 years
+t_points = 10000
+t_span = (0, t_end)
+t_eval = np.linspace(0, t_end, t_points)
 
-#My part
+# Initial Conditions (Random but scaled for visibility)
+# Position: Spread out over ~2 AU
+pos0 = (np.random.rand(N, 3) - 0.5) * 2 * 1.5e11 
 
-G=6.674e-11
-N=10
+# Velocity: Random velocities ~30 km/s
+vel0 = (np.random.rand(N, 3) - 0.5) * 2 * 30000
 
-ν=3.156e10
-t=np.linspace(0,10e7*ν,10000)
+# Masses: Random solar masses
+masses = np.random.rand(N) * 1.989e30
 
+# Combine into state vector
+state = np.hstack((pos0.flatten(), vel0.flatten()))
 
+# Initialize Physics Engine
+engine = PhysicsEngine(units=units)
 
-pos0=np.random.rand(N,3)*1.5*10e20
+# Run Simulation
+print("Running simulation...")
+sol = engine.run_simulation(state, t_span, masses, t_eval=t_eval)
 
-vel0=np.random.rand(N,3)*5*1000
-mass=np.random.rand(N)*70*10e35
+# Reshape positions for easier plotting: (Time, Body, Coordinate)
+positions = sol.y[:3*N].T.reshape(-1, N, 3)
 
-state0 = np.hstack((pos0.flatten(), vel0.flatten()))
+# Plotting
+fig = plt.figure(figsize=(12, 10))
+ax = fig.add_subplot(111, projection='3d')
+colors = plt.cm.jet(np.linspace(0, 1, N))
 
-
-@njit
-def acc(state,t):
-            pos=state[:3*N].reshape(N,3)
-            vel=state[3*N:].reshape(N,3)
-            acc = np.zeros((N, 3))
-
-            for i in range (N):
-                for j in range (N):
-                    if i!=j:
-                        rji=pos[j]-pos[i]
-                        θ=np.sqrt(rji[0]**2 + rji[1]**2 + rji[2]**2)  # Manual norm for numba
-                        θ=max(θ, 1e14)  # Collision softening - prevents division by near-zero
-                        γ=((G*(mass[j]))/(θ**3))
-                        φ=γ*rji
-                        
-                        acc[i]+=φ
-            return np.hstack((vel.flatten(),acc.flatten()))
-                         
-
-
-#Claude's part 
-
-sol = odeint(acc, state0, t)
-
-# Extract positions correctly
-positions = sol[:, :3*N].reshape(-1, N, 3)
-
-# Create clean plot
-fig = plt.figure(figsize=(10, 8), facecolor='white')
-ax = fig.add_subplot(111, projection="3d")
-ax.set_facecolor('white')
-
-# Generate colors for any N bodies
-colors = plt.cm.tab10(np.linspace(0, 1, N))
-
-# Plot trajectories as lines only
 for i in range(N):
-    # Line trajectory
     ax.plot(positions[:, i, 0], positions[:, i, 1], positions[:, i, 2],
-           color=colors[i], linewidth=1.2, alpha=0.8, label=f'Body {i+1}')
+            color=colors[i], linewidth=1.2, alpha=0.8, label=f'Body {i+1}')
     
     # Mark final position only
     ax.scatter(positions[-1, i, 0], positions[-1, i, 1], positions[-1, i, 2],
@@ -74,9 +56,6 @@ ax.set_xlabel('X (m)', fontsize=11)
 ax.set_ylabel('Y (m)', fontsize=11)
 ax.set_zlabel('Z (m)', fontsize=11)
 ax.set_title(f'{N}-Body Gravitational Simulation', fontsize=13, fontweight='bold', pad=15)
-
-# Scientific notation
-ax.ticklabel_format(style='scientific', scilimits=(0,0))
 
 # Clean grid
 ax.grid(True, alpha=0.2, linestyle='--', linewidth=0.5)

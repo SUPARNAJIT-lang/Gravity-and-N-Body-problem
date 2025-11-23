@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
-from scipy.integrate import solve_ivp
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
+from physics_engine import PhysicsEngine
 
 #My imports:
 
@@ -9,62 +9,39 @@ from Stardata import pcalc2 as pc2
 from Stardata import get_velocity_arrays as gva
 from Stardata import v_relative as vr
 
-
-
 AU = 1.496e11
+G = 6.67430e-11
+N = 3
 
-G=6.674e-11
-N=3
+year_seconds = 365.25 * 24 * 3600
+t_span = (0, 80 * year_seconds)
+t_points = 20000
+t_eval = np.linspace(t_span[0], t_span[1], t_points)
 
-ν=3.156e7
+m0 = 1.98847e30 # 1 solar-mass
+mass = np.array([1.1*m0, 0.907*m0, 0.122*m0]) 
 
-t_span=(0,80*ν)
-t=np.linspace(t_span[0],t_span[1],20000)
+# Initial Conditions
+pos00 = pc2()
+vel00 = gva()
+print("Initial Velocities (Absolute):", vel00)
 
-
-
-
-
-
-m0=1.98847e30 #1 solar-mass
-mass=np.array([1.1*m0,0.907*m0,0.122*m0]) 
-
-pos00=pc2()
-vel00=gva()
-print(vel00)
-
-vel01=vr()
-
+vel01 = vr()
+print("Initial Velocities (Relative):", vel01)
 
 state00 = np.hstack((pos00.flatten(), vel00.flatten()))
-state01=np.hstack((pos00.flatten(), vel01.flatten()))
+state01 = np.hstack((pos00.flatten(), vel01.flatten()))
 
+# Initialize Physics Engine
+# High accuracy requested: DOP853 with tight tolerances
+engine = PhysicsEngine(units='SI', method='DOP853', rtol=1e-10, atol=1e-10)
 
-def acc(t,state):
-            pos=state[:3*N].reshape(N,3)
-            vel=state[3*N:].reshape(N,3)
-            acc = np.zeros((N, 3))
+# Run Simulations
+print("Running simulation for Original Solution...")
+sol = engine.run_simulation(state00, t_span, mass, t_eval=t_eval)
 
-            for i in range (N):
-                for j in range (N):
-                    if i!=j:
-                        rji=pos[j]-pos[i]
-                        θ=np.linalg.norm(rji)
-                        γ=((G*(mass[j]))/(θ**3))
-                        φ=γ*rji
-                        
-                        acc[i]+=φ
-            return np.hstack((vel.flatten(),acc.flatten()))
-                         
-
-
-
-# After your integration:
-sol = solve_ivp(acc,t_span,state00,method='RK45',t_eval=t)
-print(sol)
-
-sol0=solve_ivp(acc,t_span,state01,method='RK45',t_eval=t)
-print(sol0)
+print("Running simulation for Relative Solution...")
+sol0 = engine.run_simulation(state01, t_span, mass, t_eval=t_eval)
 
 
 
