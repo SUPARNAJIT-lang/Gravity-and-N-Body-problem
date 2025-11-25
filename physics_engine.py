@@ -98,3 +98,41 @@ class PhysicsEngine:
         )
         
         return sol
+
+    def calculate_kinetic_energy(self, masses, velocities):
+        """
+        Calculates the total kinetic energy of the system.
+        T = 0.5 * sum(m_i * v_i^2)
+        """
+        # velocities shape: (N, 3) or flattened (3*N,)
+        velocities = velocities.reshape(-1, 3)
+        # v_squared = vx^2 + vy^2 + vz^2
+        v_squared = np.sum(velocities**2, axis=1)
+        return 0.5 * np.sum(masses * v_squared)
+
+    def calculate_potential_energy(self, masses, positions):
+        """
+        Calculates the total potential energy of the system.
+        U = - sum(G * m_i * m_j / r_ij) for i < j
+        """
+        positions = positions.reshape(-1, 3)
+        N = len(masses)
+        potential_energy = 0.0
+        
+        for i in range(N):
+            for j in range(i + 1, N):
+                r_vec = positions[i] - positions[j]
+                r_mag = np.sqrt(np.sum(r_vec**2))
+                # Add softening if needed, though usually strictly U doesn't have it unless specified
+                # Using softening here to be consistent with dynamics if desired, 
+                # but standard formula usually omits it for pure Newtonian gravity.
+                # We will use the softening parameter from the class.
+                effective_r = np.sqrt(r_mag**2 + self.softening**2)
+                if effective_r > 0:
+                    potential_energy -= (self.G * masses[i] * masses[j]) / effective_r
+                    
+        return potential_energy
+
+    # Aliases for backward compatibility with existing notebooks
+    _calculate_kinetic_energy = calculate_kinetic_energy
+    _calculate_potential_energy = calculate_potential_energy
